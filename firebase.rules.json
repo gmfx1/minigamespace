@@ -1,0 +1,45 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "rooms": {
+      "main": {
+        ".read": "auth != null",
+
+        "config": {
+          ".write": false
+        },
+
+        "hostAction": {
+          ".write": false
+        },
+
+        "tokens": {
+          "$tokenId": {
+            ".write": "auth != null && (
+              !data.exists() ||
+              !data.child('ownerSessionId').exists() ||
+              data.child('ownerSessionId').val() == auth.uid ||
+              !newData.exists()
+            )",
+            ".validate": "newData.hasChildren(['typeId', 'tray']) &&
+              newData.child('typeId').isString() &&
+              (newData.child('tray').val() == 'left' ||
+               newData.child('tray').val() == 'right' ||
+               newData.child('tray').val() == null)"
+          }
+        },
+
+        "presence": {
+          "$sessionId": {
+            ".write": "auth != null && auth.uid == $sessionId",
+            ".validate": "newData.hasChildren(['name', 'color']) &&
+              newData.child('name').isString() &&
+              newData.child('color').isString()"
+          }
+        }
+      }
+    }
+  }
+}
