@@ -5,6 +5,7 @@ import { signIn } from "./firebase.js";
 import { promptForIdentity, startPresence } from "./presence.js";
 import { startStateSync, subscribe, sumTrayWeights } from "./state.js";
 import { initTokens } from "./tokens.js";
+import { initHost } from "./host.js";
 
 async function boot() {
   initScene();
@@ -14,6 +15,7 @@ async function boot() {
   startPresence(user.uid, identity);
   startStateSync();
   initTokens();
+  await initHost(user.uid);
 
   subscribe((state) => {
     renderPresence(state.presence, user.uid);
