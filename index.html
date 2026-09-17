@@ -98,11 +98,15 @@
       <div id="trash-zone" aria-label="Remove token">🗑</div>
     </section>
 
-    <!-- Host panel placeholder: shown only when ?host=<secret> is present. -->
+    <!-- Host panel: unhidden by src/host.js after a successful ?host=<secret> handshake. -->
     <aside id="host-panel" hidden>
       <h2>Host Controls</h2>
-      <button id="host-reset">Reset</button>
-      <button id="host-lock">Lock</button>
+      <button id="host-reset">Reset trays</button>
+      <button id="host-lock">Lock palette</button>
+      <button id="host-bg">Change background…</button>
+      <button id="host-weight-scale">Set tilt sensitivity…</button>
+      <button id="host-add-token">Add token type…</button>
+      <button id="host-remove-token">Remove token type…</button>
     </aside>
   </main>
 
