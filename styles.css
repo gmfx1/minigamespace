@@ -1,1 +1,284 @@
 
+/* -------- layout -------- */
+:root {
+  --bg: #1a1410;
+  --panel: #251b13;
+  --ink: #f2e6d0;
+  --accent: #d4a757;
+  --danger: #b04a3a;
+  --tray-transition: 250ms ease-out;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+  overscroll-behavior: none;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+#topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+}
+
+#topbar h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+#presence-list {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+/* -------- scene -------- */
+#scene-wrap {
+  position: relative;
+  min-height: 0;
+  background: #0d0906;
+  border: 1px solid #3b2810;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#scene {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;      /* required for Phase 4 pointer drag */
+  user-select: none;
+}
+
+/* -------- scale physics (declarative pivot + transition) -------- */
+.beam {
+  transform-origin: 500px 200px;
+  transition: transform var(--tray-transition);
+  will-change: transform;
+}
+
+.tray {
+  transition: transform var(--tray-transition);
+  will-change: transform;
+}
+
+/* -------- palette -------- */
+#palette {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--panel);
+  border: 1px solid #3b2810;
+  border-radius: 8px;
+  min-height: 72px;
+}
+
+#palette-items {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.palette-item {
+  --token-color: #888;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 0.35rem 0.5rem;
+  background: transparent;
+  border: 2px solid #3b2810;
+  border-radius: 8px;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  gap: 0.25rem;
+  cursor: grab;
+  touch-action: none;
+  font-family: inherit;
+}
+.palette-item:active { cursor: grabbing; }
+.palette-token {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--token-color);
+  border: 2px solid #3b2810;
+  display: grid;
+  place-items: center;
+  color: #1a1410;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.palette-label {
+  font-size: 0.7rem;
+  line-height: 1.1;
+  text-align: center;
+  max-width: 80px;
+}
+
+#trash-zone {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed #6b4a22;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  color: var(--danger);
+  cursor: pointer;
+}
+
+/* Drop-target highlight during a drag. */
+.drop-target-hover { outline: 3px dashed var(--accent); outline-offset: 4px; }
+#tray-left.drop-target-hover, #tray-right.drop-target-hover {
+  filter: drop-shadow(0 0 6px var(--accent));
+}
+
+/* Floating drag preview follows the pointer. */
+.drag-preview {
+  --token-color: #888;
+  position: fixed;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--token-color);
+  border: 2px solid #3b2810;
+  display: grid;
+  place-items: center;
+  color: #1a1410;
+  font-weight: 700;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* SVG token in a tray; cursor + a subtle cue when someone else holds it. */
+.tray-token { cursor: grab; touch-action: none; }
+.tray-token.owned-by-other { opacity: 0.5; cursor: not-allowed; }
+
+/* Tray art is purely visual; the hitbox rect and the tokens beneath it are what receive events. */
+#tray-left > image, #tray-right > image { pointer-events: none; }
+
+/* -------- host panel -------- */
+#host-panel[hidden] { display: none; }
+
+#host-panel {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: grid;
+  gap: 0.35rem;
+  z-index: 10;
+}
+
+#host-panel button {
+  min-height: 44px;
+  padding: 0 0.75rem;
+  background: var(--accent);
+  color: #1a1410;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Locked-state visual cues. Palette dims and a badge in the topbar makes the state
+   readable even before there are any tokens in the palette. */
+body.locked #palette { opacity: 0.55; filter: grayscale(0.4); }
+body.locked #palette-items { pointer-events: none; }
+
+#lock-indicator {
+  display: none;
+  padding: 0.25rem 0.6rem;
+  background: var(--danger);
+  color: #1a1410;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+body.locked #lock-indicator { display: inline-flex; }
+
+/* -------- presence chips -------- */
+.presence-chip {
+  --chip: #888;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  background: var(--chip);
+  color: #1a1410;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.presence-chip.me { outline: 2px solid var(--accent); }
+
+/* -------- join dialog -------- */
+#identity-dialog {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 1.5rem;
+  min-width: 280px;
+}
+#identity-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+#identity-dialog h2 { margin: 0 0 0.5rem; color: var(--accent); }
+#identity-dialog label { display: block; margin: 0.75rem 0; }
+#identity-dialog input[type="text"] {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  background: #1a1410;
+  color: var(--ink);
+  border: 1px solid #3b2810;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+#identity-dialog input[type="color"] {
+  width: 60px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #3b2810;
+  background: none;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+#identity-dialog button {
+  min-height: 44px;
+  padding: 0 1.25rem;
+  margin-top: 0.5rem;
+  background: var(--accent);
+  color: #1a1410;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
