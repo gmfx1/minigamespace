@@ -1,4 +1,3 @@
-
 /* -------- layout -------- */
 :root {
   --bg: #1a1410;
@@ -281,4 +280,63 @@ body.locked #lock-indicator { display: inline-flex; }
   cursor: pointer;
   font-size: 1rem;
 }
+
+/* -------- host form dialogs -------- */
+.host-form-dialog {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  min-width: 320px;
+  max-width: min(90vw, 480px);
+}
+.host-form-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.host-form-dialog h2 { margin: 0 0 0.5rem; color: var(--accent); font-size: 1.1rem; }
+.host-form-dialog label {
+  display: block;
+  margin: 0.6rem 0;
+  font-size: 0.9rem;
+}
+.host-form-dialog input,
+.host-form-dialog select {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background: #1a1410;
+  color: var(--ink);
+  border: 1px solid #3b2810;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.host-form-dialog input[type="color"] {
+  width: 60px;
+  height: 40px;
+  padding: 0;
+  cursor: pointer;
+}
+.host-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+.host-form-actions button {
+  min-height: 40px;
+  padding: 0 1rem;
+  background: var(--accent);
+  color: #1a1410;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.host-form-actions button[value="cancel"] {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid #3b2810;
+}
+.host-form-actions button.danger { background: var(--danger); color: #f2e6d0; }
 
