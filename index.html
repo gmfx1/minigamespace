@@ -1,8 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content=
-        "width=device-width, initial-scale=1.0" />
-    <title>mini-game-space</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Balance Scale — minigamespace</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
+<body>
+  <main id="app">
+    <header id="topbar">
+      <h1>Balance Scale</h1>
+      <span id="lock-indicator" aria-live="polite">🔒 Locked</span>
+      <div id="presence-list" aria-label="Players present"></div>
+    </header>
+
+    <section id="scene-wrap">
+      <!-- viewBox is the shared coordinate system referenced by scale.js -->
+      <svg
+        id="scene"
+        viewBox="0 0 1000 700"
+        preserveAspectRatio="xMidYMid meet"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Balance scale scene"
+      >
+        <defs>
+          <!-- Rope pattern is just a straight stroke for MVP; upgrade later. -->
+          <linearGradient id="beam-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#a8834a" />
+            <stop offset="100%" stop-color="#6b4a22" />
+          </linearGradient>
+          <linearGradient id="tray-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#c9a760" />
+            <stop offset="100%" stop-color="#7a5a26" />
+          </linearGradient>
+        </defs>
+
+        <!-- Background slot: swapped in Phase 3 via setBackground(url). -->
+        <image
+          id="background-slot"
+          href=""
+          x="0" y="0" width="1000" height="700"
+          preserveAspectRatio="xMidYMid slice"
+        />
+
+        <!-- Ground shadow: purely decorative. -->
+        <ellipse cx="500" cy="648" rx="200" ry="14" fill="rgba(0,0,0,0.35)" />
+
+        <!-- Beam: drawn first so it renders beneath fulcrum and trays. Rotates around (500,200). -->
+        <g id="beam" class="beam">
+          <image
+            href="assets/Beam.png"
+            x="175" y="180" width="650" height="40"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </g>
+
+        <!-- Fulcrum: full silhouette baked into a single PNG; slot anchors bottom-center. -->
+        <g id="fulcrum">
+          <image
+            href="assets/fulcrum.png"
+            x="400" y="106" width="200" height="540"
+            preserveAspectRatio="xMidYMax meet"
+          />
+        </g>
+
+        <!-- Trays: positioned by scale.js each frame to hang from beam endpoints.
+             Chains are baked into the tray art; the slot's top-center (0,0) is the beam-attach point. -->
+        <g id="tray-left" class="tray">
+          <!-- Invisible drop-target hitbox; tokens sit on top of it, tray art on top of them. -->
+          <rect class="tray-hitbox" x="-80" y="0" width="200" height="400"
+            fill="none" pointer-events="all" />
+          <g class="tray-tokens" transform="translate(0 380)"></g>
+          <image
+            href="assets/tray_with_chains_l.png"
+            x="-80" y="0" width="200" height="400"
+            preserveAspectRatio="xMidYMin meet"
+          />
+        </g>
+
+        <g id="tray-right" class="tray">
+          <rect class="tray-hitbox" x="-130" y="0" width="200" height="400"
+            fill="none" pointer-events="all" />
+          <g class="tray-tokens" transform="translate(0 380)"></g>
+          <image
+            href="assets/tray_with_chains_r.png"
+            x="-130" y="0" width="200" height="400"
+            preserveAspectRatio="xMidYMin meet"
+          />
+        </g>
+      </svg>
+    </section>
+
+    <!-- Palette placeholder: populated in Phase 4 from config.tokenTypes. -->
+    <section id="palette" aria-label="Weight tokens">
+      <div id="palette-items"></div>
+      <div id="trash-zone" aria-label="Remove token">🗑</div>
+    </section>
+
+    <!-- Host panel placeholder: shown only when ?host=<secret> is present. -->
+    <aside id="host-panel" hidden>
+      <h2>Host Controls</h2>
+      <button id="host-reset">Reset</button>
+      <button id="host-lock">Lock</button>
+    </aside>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
