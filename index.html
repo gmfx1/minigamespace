@@ -36,13 +36,7 @@
           </linearGradient>
         </defs>
 
-        <!-- Background slot: swapped in Phase 3 via setBackground(url). -->
-        <image
-          id="background-slot"
-          href=""
-          x="0" y="0" width="1000" height="700"
-          preserveAspectRatio="xMidYMid slice"
-        />
+        <!-- Background lives on #scene-wrap so it can fill the window regardless of the SVG viewBox aspect. -->
 
         <!-- Ground shadow: purely decorative. -->
         <ellipse cx="500" cy="648" rx="200" ry="14" fill="rgba(0,0,0,0.35)" />
