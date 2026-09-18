@@ -10,7 +10,7 @@ const ARM_LENGTH = 325;      // beam extends ±325 from pivot
 // MAX_TILT is bounded by geometry: at this angle the descending tray bottom (world y
 // = 600 + 325·sinθ) just reaches the plinth top near y=628. Enforced as a hard cap
 // regardless of any config value so the trays never cross the fulcrum base.
-const MAX_TILT_DEFAULT = 4;  // degrees
+const MAX_TILT_DEFAULT = 5;  // degrees
 
 let sceneEl = null;
 let beamEl = null;
