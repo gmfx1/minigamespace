@@ -127,6 +127,18 @@ html, body {
   color: #1a1410;
   font-weight: 700;
   font-size: 0.9rem;
+  overflow: hidden;
+}
+.palette-token.has-icon {
+  background: transparent;
+  border-color: var(--token-color);
+}
+.palette-token img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
 }
 .palette-label {
   font-size: 0.7rem;
@@ -170,6 +182,27 @@ html, body {
   transform: translate(-50%, -50%);
   z-index: 1000;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.drag-preview.has-icon {
+  background: transparent;
+  border-color: var(--token-color);
+}
+.drag-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+.drag-preview-badge {
+  position: absolute;
+  inset: auto 0 -2px 0;
+  text-align: center;
+  color: #f2e6d0;
+  text-shadow: 0 0 3px #1a1410, 0 0 3px #1a1410;
+  font-size: 0.8rem;
+  pointer-events: none;
 }
 
 /* SVG token in a tray; cursor + a subtle cue when someone else holds it. */
