@@ -13,18 +13,18 @@ const ARM_LENGTH = 325;      // beam extends ±325 from pivot
 const MAX_TILT_DEFAULT = 5;  // degrees
 
 let sceneEl = null;
+let sceneWrapEl = null;
 let beamEl = null;
 let trayLeftEl = null;
 let trayRightEl = null;
-let backgroundEl = null;
 
 export function initScene() {
   sceneEl = document.getElementById(SCENE_ID);
   if (!sceneEl) throw new Error(`#${SCENE_ID} not found`);
+  sceneWrapEl = document.getElementById('scene-wrap');
   beamEl = sceneEl.querySelector('#beam');
   trayLeftEl = sceneEl.querySelector('#tray-left');
   trayRightEl = sceneEl.querySelector('#tray-right');
-  backgroundEl = sceneEl.querySelector('#background-slot');
   setTilt(0);
 }
 
@@ -46,7 +46,8 @@ export function setTilt(angleDeg, { maxTilt = MAX_TILT_DEFAULT } = {}) {
 }
 
 export function setBackground(url) {
-  backgroundEl.setAttribute('href', url || '');
+  if (!sceneWrapEl) return;
+  sceneWrapEl.style.backgroundImage = url ? `url("${url.replace(/"/g, '\\"')}")` : '';
 }
 
 // Phase 4 will use this to know where to snap a dropped token.
