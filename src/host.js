@@ -97,7 +97,8 @@ function wireHostButtons() {
       { name: "id", label: "ID (letters/numbers, e.g. 'ruby')", value: "", required: true },
       { name: "label", label: "Label", value: "", required: true },
       { name: "weight", label: "Weight (positive integer)", value: 1, type: "number", step: "1", required: true },
-      { name: "color", label: "Color", value: "#888888", type: "color" },
+      { name: "color", label: "Color (fallback if no icon)", value: "#888888", type: "color" },
+      { name: "iconUrl", label: "Icon URL (optional; e.g. assets/ruby.png)", value: "" },
     ]);
     if (!r) return;
     const id = r.id.trim();
@@ -105,7 +106,12 @@ function wireHostButtons() {
     if (types[id]) return alert("A token type with that ID already exists.");
     const weight = Number(r.weight);
     if (!Number.isFinite(weight) || weight <= 0) return alert("Weight must be a positive number.");
-    types[id] = { label: (r.label || id).trim(), weight, color: r.color || "#888888" };
+    types[id] = {
+      label: (r.label || id).trim(),
+      weight,
+      color: r.color || "#888888",
+      iconUrl: r.iconUrl.trim() || null,
+    };
     await set(roomRef("config/tokenTypes"), types);
   });
 
