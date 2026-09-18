@@ -16,14 +16,25 @@ let activeDrag = null;
 
 export function initTokens() {
   subscribe((state) => {
-    renderPalette(state.config?.tokenTypes || {});
-    renderTrayTokens(state.tokens || {}, state.config?.tokenTypes || {});
+    const iAmHost = isHostView(state);
+    renderPalette(state.config?.tokenTypes || {}, iAmHost);
+    renderTrayTokens(state.tokens || {}, state.config?.tokenTypes || {}, iAmHost);
   });
+}
+
+// Weights are hidden from players; only the host sees numeric values.
+function isHostView(state) {
+  const uid = auth.currentUser?.uid;
+  return !!(uid && state.presence?.[uid]?.isHost);
+}
+
+function firstLetter(def, typeId) {
+  return String(def.label || typeId || "?").trim().charAt(0).toUpperCase() || "?";
 }
 
 // ---------------- palette ----------------
 
-function renderPalette(tokenTypes) {
+function renderPalette(tokenTypes, iAmHost) {
   const container = document.getElementById("palette-items");
   if (!container) return;
   container.innerHTML = "";
@@ -33,9 +44,17 @@ function renderPalette(tokenTypes) {
     item.className = "palette-item";
     item.dataset.typeId = typeId;
     item.style.setProperty("--token-color", def.color || "#888");
+
+    const label = escapeHtml(def.label || typeId);
+    const suffix = iAmHost ? ` · ${escapeHtml(String(def.weight ?? "?"))}` : "";
+    const inner = def.iconUrl
+      ? `<img src="${escapeAttr(def.iconUrl)}" alt="" />`
+      : escapeHtml(iAmHost ? String(def.weight ?? "?") : firstLetter(def, typeId));
+    const chipClass = def.iconUrl ? "palette-token has-icon" : "palette-token";
+
     item.innerHTML = `
-      <span class="palette-token">${def.weight ?? "?"}</span>
-      <span class="palette-label">${escapeHtml(def.label || typeId)}</span>
+      <span class="${chipClass}">${inner}</span>
+      <span class="palette-label">${label}${suffix}</span>
     `;
     item.addEventListener("pointerdown", (e) =>
       beginDrag(e, { source: "palette", typeId })
@@ -46,7 +65,7 @@ function renderPalette(tokenTypes) {
 
 // ---------------- tray tokens ----------------
 
-function renderTrayTokens(tokens, tokenTypes) {
+function renderTrayTokens(tokens, tokenTypes, iAmHost) {
   for (const side of ["left", "right"]) {
     const group = document.querySelector(`#tray-${side} .tray-tokens`);
     if (!group) continue;
@@ -67,14 +86,7 @@ function renderTrayTokens(tokens, tokenTypes) {
       if (tok.ownerSessionId && tok.ownerSessionId !== auth.currentUser?.uid) {
         gEl.classList.add("owned-by-other");
       }
-      gEl.innerHTML = `
-        <circle r="18" fill="${def.color || "#888"}"
-          stroke="#3b2810" stroke-width="2" />
-        <text x="0" y="5" text-anchor="middle"
-          font-size="14" font-weight="bold" fill="#1a1410">
-          ${def.weight ?? "?"}
-        </text>
-      `;
+      gEl.innerHTML = trayTokenSvg(def, tok.typeId, iAmHost);
       gEl.addEventListener("pointerdown", (e) =>
         beginDrag(e, { source: "tray", tokenId, typeId: tok.typeId })
       );
@@ -83,10 +95,33 @@ function renderTrayTokens(tokens, tokenTypes) {
   }
 }
 
+function trayTokenSvg(def, typeId, iAmHost) {
+  const centerText = iAmHost
+    ? String(def.weight ?? "?")
+    : def.iconUrl
+    ? "" // icon speaks for itself
+    : firstLetter(def, typeId);
+  const overlay = centerText
+    ? `<text x="0" y="5" text-anchor="middle" font-size="14" font-weight="bold"
+        fill="#f2e6d0" stroke="#1a1410" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${escapeHtml(centerText)}</text>`
+    : "";
+  if (def.iconUrl) {
+    return `
+      <image href="${escapeAttr(def.iconUrl)}" x="-18" y="-18" width="36" height="36"
+        preserveAspectRatio="xMidYMid meet" />
+      ${overlay}
+    `;
+  }
+  return `
+    <circle r="18" fill="${escapeAttr(def.color || "#888")}" stroke="#3b2810" stroke-width="2" />
+    ${overlay}
+  `;
+}
+
 // Auto-derives the horizontal midpoint of the tray artwork from its <image> slot,
 // so tokens stay centered on the dish even if the slot's x offset is later retuned.
 function getTrayArtCenterX(side) {
-  const imageEl = document.querySelector(`#tray-${side} image`);
+  const imageEl = document.querySelector(`#tray-${side} > image`);
   if (!imageEl) return 0;
   const x = Number(imageEl.getAttribute("x")) || 0;
   const w = Number(imageEl.getAttribute("width")) || 0;
@@ -105,12 +140,13 @@ function beginDrag(e, context) {
   const def = state.config?.tokenTypes?.[context.typeId] || {};
   const uid = auth.currentUser?.uid;
   if (!uid) return;
+  const iAmHost = isHostView(state);
 
   activeDrag = {
     ...context,
     uid,
     def,
-    preview: createPreview(def, e.clientX, e.clientY),
+    preview: createPreview(def, context.typeId, iAmHost, e.clientX, e.clientY),
     disc: null,
   };
 
@@ -206,13 +242,20 @@ async function claimToken(tokenId, uid) {
 
 // ---------------- helpers ----------------
 
-function createPreview(def, x, y) {
+function createPreview(def, typeId, iAmHost, x, y) {
   const el = document.createElement("div");
-  el.className = "drag-preview";
+  el.className = "drag-preview" + (def.iconUrl ? " has-icon" : "");
   el.style.setProperty("--token-color", def.color || "#888");
   el.style.left = x + "px";
   el.style.top = y + "px";
-  el.textContent = def.weight ?? "?";
+  const centerText = iAmHost
+    ? String(def.weight ?? "?")
+    : def.iconUrl
+    ? ""
+    : firstLetter(def, typeId);
+  el.innerHTML = def.iconUrl
+    ? `<img src="${escapeAttr(def.iconUrl)}" alt="" />${centerText ? `<span class="drag-preview-badge">${escapeHtml(centerText)}</span>` : ""}`
+    : escapeHtml(centerText);
   document.body.appendChild(el);
   return el;
 }
@@ -231,3 +274,4 @@ function escapeHtml(s) {
     "'": "&#39;",
   }[c]));
 }
+function escapeAttr(s) { return escapeHtml(s); }
